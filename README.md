@@ -109,13 +109,14 @@ sudo chmod 666 /dev/ttyUSB0
 
 ## Linux 上位机模块说明
 
-模块	功能简述
-uart_port	termios 串口配置，设置原始二进制模式；封装串口 open、close、write 系统调用
-ring_buf	256 字节环形 FIFO，串口原始字节蓄水池；缓冲区溢出一次性告警；仅缓存字节，不处理帧协议
-sensor_frame_parser	    三段状态机解析$...#上报帧；内部frame_busy忙标记做流控；输出独立帧载荷副本；防护恶意无限半帧；契约：收到完整帧后必须调用sensor_parser_release()
-console_cmd	    读取标准输入 stdin，按行读取用户输入，剥离\r、\n换行符，原始字节透传给串口下发
-csv_log	CSV     日志模块；空文件自动写入表头；每条数据写完执行fsync()强制刷盘；IO 故障必须先调用 release 解析器，再释放资源退出
-main.c	poll    多路 IO 监听串口与键盘；SIGINT 信号安全退出；消费环形缓冲区，单字节喂入解析器；strtok_r+strchr完成 KV 键‑值解析；控制台打印数据、写入 CSV、统一资源回收
+| 模块 | 功能简述 |
+| --- | --- |
+| `uart_port` | termios 串口配置，设置原始二进制模式；封装串口 open、close、write 系统调用 |
+| `ring_buf` | 256 字节环形 FIFO，串口原始字节蓄水池；缓冲区溢出一次性告警；仅缓存字节，不处理帧协议 |
+| `sensor_frame_parser` | 三段状态机解析`$...#`上报帧；内部`frame_busy`忙标记做流控；输出独立帧载荷副本；防护恶意无限半帧；**契约：收到完整帧后必须调用`sensor_parser_release()`** |
+| `console_cmd` | 读取标准输入 stdin，按行读取用户输入，剥离`\r`、`\n`换行符，原始字节透传给串口下发 |
+| `csv_log` | CSV 日志模块；空文件自动写入表头；每条数据写完执行`fsync()`强制刷盘；IO 故障必须先调用 release 解析器，再释放资源退出 |
+| `main.c` | poll 多路 IO 监听串口与键盘；SIGINT 信号安全退出；消费环形缓冲区，单字节喂入解析器；`strtok_r+strchr`完成 KV 键‑值解析；控制台打印数据、写入 CSV、统一资源回收 |
 
 ### ⚠️核心代码契约（红线）
 
@@ -125,10 +126,11 @@ main.c	poll    多路 IO 监听串口与键盘；SIGINT 信号安全退出；消
 
 ### 三层防护架构
 
-防护层级	       模块	                解决风险	                                实现手段
-协议解析层	    sensor_frame_parser	   恶意无限半帧；未处理完的帧被新数据覆盖	    128 字节组帧缓冲区溢出告警丢弃；frame_busy忙标记；输出独立帧副本；处理完成必须 release
-业务调度层	    main poll + ring_buf    避免解析器被硬件异步抢占	                串口原始字节先存入 ring_buf；主循环轮询消费缓冲区，单字节送入解析器
-底层字节兜底层	ring_buf	            瞬时流量超过上层处理速度	                ring_buf 写满后丢弃新来字节，打印一次性严重告警
+| 防护层级 | 模块 | 解决风险 | 实现手段 |
+| --- | --- | --- | --- |
+| 协议解析层 | sensor_frame_parser | 恶意无限半帧；未处理完的帧被新数据覆盖 | 128 字节组帧缓冲区溢出告警丢弃；`frame_busy`忙标记；输出独立帧副本；处理完成必须 release |
+| 业务调度层 | main poll + ring_buf | 避免解析器被硬件异步抢占 | 串口原始字节先存入 ring_buf；主循环轮询消费缓冲区，单字节送入解析器 |
+| 底层字节兜底层 | ring_buf | 瞬时流量超过上层处理速度 | ring_buf 写满后丢弃新来字节，打印一次性严重告警 |
 
 ### 完整数据流
 
