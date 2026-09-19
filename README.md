@@ -25,19 +25,19 @@
 ## 项目目录结构
 
 stm32_linux_sensor_monitor/
-├── stm32_f103_c8t6_slave/        # STM32F103 Keil-MDK 下位机工程，存放各类驱动与业务源码
+├── stm32_f103_c8t6_slave/        # STM32F103 Keil-MDK下位机工程，存放各类驱动与业务源码
 ├── log_record/
-│   └── DebugRecord.md            # 调试复盘、历史 Bug 完整记录
-├── linux_uart_host/              # X86-Linux 上位机源码目录
+│   └── DebugRecord.md            # 调试复盘、历史Bug完整记录
+├── linux_uart_host/              # X86-Linux上位机源码目录
 │   ├── app_config.h              # 全局宏、枚举、结构体配置
 │   ├── uart_port.h/uart_port.c   # POSIX termios 串口底层封装
-│   ├── ring_buf.h/ring_buf.c     # 字节环形 FIFO 缓冲区
+│   ├── ring_buf.h/ring_buf.c     # 字节环形FIFO缓冲区
 │   ├── sensor_frame_parser.h/sensor_frame_parser.c # 传感器状态机解析器
 │   ├── console_cmd.h/console_cmd.c # 控制台 stdin 行读取
-│   ├── csv_log.h/csv_log.c       # CSV 持久化日志模块
-│   ├── main.c                    # 程序主入口，poll 主事件循环
-│   └── Makefile                  # GCC 编译构建脚本
-└── README.md                     # 本项目说明文档
+│   ├── csv_log.h/csv_log.c       # CSV持久化日志模块
+│   ├── main.c                    # 程序主入口，poll主事件循环
+│   ├── Makefile                  # GCC编译构建脚本
+│   └── README.md                 # 本项目说明文档
 
 ## 硬件清单
 |器件|说明|
