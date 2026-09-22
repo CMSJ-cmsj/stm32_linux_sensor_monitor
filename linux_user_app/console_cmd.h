@@ -1,6 +1,5 @@
 #ifndef __CONSOLE_CMD_H
 #define __CONSOLE_CMD_H
-
 #include <unistd.h>//ssize_t
 #include <string.h>
 #include <stdio.h>
@@ -12,7 +11,6 @@
  * ✅本阶段：Linux侧**不解析下发指令语义**；完整@xxx#!帧原样下发；全部指令解析交给STM32下位机三段状态机；
  * @TODO后续扩展：简易命令映射层，输入led_on自动组装@LED:ON#!下发。
  */
-
 /**
  * @brief 从stdin读取一行；剥离末尾 \r \n；
  * @param buf 输出行缓冲区
@@ -23,4 +21,13 @@
  */
 ssize_t console_read_line(uint8_t *buf,size_t buf_size);
 
-#endif 
+/**
+ * @brief 处理一次stdin可读事件：读一行，下发串口
+ * @param uart_fd 串口fd，用于发送指令
+ * @param tx_buf 外部传入行缓冲区
+ * @param buf_size 缓冲区大小
+ * @return 0正常；非0代表读到EOF，程序应退出
+ */
+int console_process_once(int uart_fd,uint8_t *tx_buf,size_t buf_size);
+
+#endif

@@ -1,13 +1,14 @@
 #include "sensor_frame_parser.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-/* ========= parser模块内部私有静态变量（A‑1方案，流控收敛在parser内部 ========= */
+/* ========= parser模块内部私有静态变量，流控收敛在parser内部 ========= */
 static SensorParseState_t  s_parse_state = SENSOR_ST_IDLE;
 static uint8_t  s_parse_work_buf[PARSE_WORK_BUF_LEN]; //组帧工作缓存128字节
 static size_t   s_parse_work_len = 0U;                //当前载荷有效字节计数
-static uint8_t  s_frame_busy = 0U;                    //✅A‑1核心忙标记；1=已经产出完整帧，业务尚未release
-static uint8_t  s_busy_drop_warn_printed = 0U;        //F1‑A：busy丢弃字节仅打印一次告警
+static uint8_t  s_frame_busy = 0U;                    //核心忙标记；1=已经产出完整帧，业务尚未release
+static uint8_t  s_busy_drop_warn_printed = 0U;        //busy丢弃字节仅打印一次告警
 static uint8_t  s_busy_recover_notice_print = 0U;
 
 /**
@@ -19,7 +20,7 @@ static void parser_reset_work_buffer(void)
     s_parse_work_len = 0U;
 }
 
-/**????????????????????????????????????????
+/**
  * @brief 内部：将当前组帧缓存拷贝到对外输出SensorFrame_t副本；只拷贝原始载荷字符串，不做KV解析；KV解析交给main业务层
  */
  static void parser_copy_payload_to_output(SensorFrame_t *out_frame,const uint8_t *payload_buf,size_t payload_len)
@@ -53,7 +54,7 @@ static void parser_reset_work_buffer(void)
         return -1;
     }
     out_frame->valid = 0U;
-    /* ==========A‑1第一层防护：frame_busy为true，全部输入字节直接丢弃；F1‑A仅首次打印告警 ========== */
+    /* ==========第一层防护：frame_busy为true，全部输入字节直接丢弃；仅首次打印告警 ========== */
     if(s_frame_busy != 0U)
     {
         if(s_busy_drop_warn_printed == 0U)
@@ -79,7 +80,7 @@ static void parser_reset_work_buffer(void)
         case SENSOR_ST_RECV_PAYLOAD:
             if(byte == '#')
             {
-                // ✅识别主帧结束标记#；本帧载荷收集完毕
+                // 识别主帧结束标记#；本帧载荷收集完毕
                 // 把s_parse_work_buf拷贝到外部独立副本out_frame
                 parser_copy_payload_to_output(out_frame,s_parse_work_buf,s_parse_work_len);
                 // A‑1：收到完整帧，置忙标记true；**此时不清空work_buf，等待下一次$帧头再重置**
@@ -135,7 +136,7 @@ static void parser_reset_work_buffer(void)
         return ;
     }
     s_frame_busy = 0U;
-    // F1‑A：busy状态结束，打印恢复提示
+    // busy状态结束，打印恢复提示
     fprintf(stderr,"[INFO] parser release busy flag, recover to accept new frame.\n");
     s_busy_recover_notice_print = 1U;
  }

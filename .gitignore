@@ -1,0 +1,25 @@
+# 编译生成目标文件
+*.o
+*.out
+*.elf
+*.bin
+*.hex
+
+# 可执行程序
+linux_user_app/main
+linux_user_app/console_cmd
+
+# 编辑器临时文件
+*~
+*.swp
+*.swo
+
+# cmake / make 生成中间文件夹
+build/
+obj/
+Debug/
+Release/
+
+# 系统垃圾
+.DS_Store
+Thumbs.db
